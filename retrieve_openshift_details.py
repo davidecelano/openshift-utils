@@ -6,25 +6,27 @@ import csv
 def get_resource_details(resource_type, namespace):
     command = [
         "oc", "get", resource_type, "-n", namespace,
-        "-o=jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{.metadata.namespace}{\"\\n\"}{.kind}{\"\\n\"}{.spec.template.spec.containers[*].resources}{\"\\n\"}{.spec.template.spec.containers[*].readinessProbe.initialDelaySeconds}{\"\\n\"}{.status.replicas}{\"\\n\"}{.spec.replicas}{\"\\n\"}{.spec.replicas}{\"\\n\"}{end}"
+        "-o=jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{.metadata.namespace}{\"\\n\"}{.kind}{\"\\n\"}{.spec.template.spec.containers[*].resources.limits.cpu}{\"\\n\"}{.spec.template.spec.containers[*].resources.limits.memory}{\"\\n\"}{.spec.template.spec.containers[*].resources.requests.cpu}{\"\\n\"}{.spec.template.spec.containers[*].resources.requests.memory}{\"\\n\"}{.spec.template.spec.containers[*].readinessProbe.initialDelaySeconds}{\"\\n\"}{.status.replicas}{\"\\n\"}{.spec.replicas}{\"\\n\"}{.spec.replicas}{\"\\n\"}{end}"
     ]
     result = subprocess.run(command, capture_output=True, text=True)
     details = result.stdout.strip().split("\n")
     
     resources = []
-    for i in range(0, len(details), 8):
-        if len(details) - i < 8:
+    for i in range(0, len(details), 11):
+        if len(details) - i < 11:
             continue
         resource = {
             "name": details[i] if i < len(details) else "NotSet",
             "namespace": details[i+1] if i+1 < len(details) else "NotSet",
             "type": details[i+2] if i+2 < len(details) else "NotSet",
-            "limits": details[i+3] if i+3 < len(details) else "NotSet",
-            "requests": details[i+3] if i+3 < len(details) else "NotSet",
-            "readiness_probe_time": details[i+4] if i+4 < len(details) else "NotSet",
-            "current_replicas": details[i+5] if i+5 < len(details) else "NotSet",
-            "min_replicas": details[i+6] if i+6 < len(details) else "NotSet",
-            "max_replicas": details[i+7] if i+7 < len(details) else "NotSet"
+            "limits.cpu": details[i+3] if i+3 < len(details) else "NotSet",
+            "limits.memory": details[i+4] if i+4 < len(details) else "NotSet",
+            "requests.cpu": details[i+5] if i+5 < len(details) else "NotSet",
+            "requests.memory": details[i+6] if i+6 < len(details) else "NotSet",
+            "readiness_probe_time": details[i+7] if i+7 < len(details) else "NotSet",
+            "current_replicas": details[i+8] if i+8 < len(details) else "NotSet",
+            "min_replicas": details[i+9] if i+9 < len(details) else "NotSet",
+            "max_replicas": details[i+10] if i+10 < len(details) else "NotSet"
         }
         resources.append(resource)
     
@@ -32,7 +34,7 @@ def get_resource_details(resource_type, namespace):
 
 def write_csv(details, output_file):
     with open(output_file, "w", newline='') as csvfile:
-        fieldnames = ["name", "namespace", "type", "limits", "requests", "readiness_probe_time", "current_replicas", "min_replicas", "max_replicas"]
+        fieldnames = ["name", "namespace", "type", "limits.cpu", "limits.memory", "requests.cpu", "requests.memory", "readiness_probe_time", "current_replicas", "min_replicas", "max_replicas"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='|')
         writer.writeheader()
         for resource_type, resources in details.items():
