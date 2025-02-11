@@ -1,6 +1,7 @@
 import json
 import subprocess
 import sys
+import csv
 
 def get_resource_details(resource_type, namespace):
     command = [
@@ -29,13 +30,23 @@ def get_resource_details(resource_type, namespace):
     
     return resources
 
+def write_csv(details, output_file):
+    with open(output_file, "w", newline='') as csvfile:
+        fieldnames = ["name", "namespace", "type", "limits", "requests", "readiness_probe_time", "current_replicas", "min_replicas", "max_replicas"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter='|')
+        writer.writeheader()
+        for resource_type, resources in details.items():
+            for resource in resources:
+                writer.writerow(resource)
+
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python retrieve_openshift_details.py <namespace> <output_file>")
+    if len(sys.argv) != 4:
+        print("Usage: python retrieve_openshift_details.py <namespace> <output_file> <output_format>")
         sys.exit(1)
 
     namespace = sys.argv[1]
     output_file = sys.argv[2]
+    output_format = sys.argv[3].lower()
 
     details = {
         "deployments": get_resource_details("deployments", namespace),
@@ -44,8 +55,14 @@ def main():
         "daemonsets": get_resource_details("daemonsets", namespace)
     }
 
-    with open(output_file, "w") as f:
-        json.dump(details, f, indent=4)
+    if output_format == "json":
+        with open(output_file, "w") as f:
+            json.dump(details, f, indent=4)
+    elif output_format == "csv":
+        write_csv(details, output_file)
+    else:
+        print("Invalid output format. Please choose 'json' or 'csv'.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
