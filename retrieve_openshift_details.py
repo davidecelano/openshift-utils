@@ -5,10 +5,27 @@ import sys
 def get_resource_details(resource_type, namespace):
     command = [
         "oc", "get", resource_type, "-n", namespace,
-        "-o=jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{.spec.template.spec.containers[*].resources}{\"\\n\"}{.status.replicas}{\"\\n\"}{end}"
+        "-o=jsonpath={range .items[*]}{.metadata.name}{\"\\n\"}{.metadata.namespace}{\"\\n\"}{.kind}{\"\\n\"}{.spec.template.spec.containers[*].resources}{\"\\n\"}{.spec.template.spec.containers[*].readinessProbe.initialDelaySeconds}{\"\\n\"}{.status.replicas}{\"\\n\"}{.spec.replicas}{\"\\n\"}{.spec.replicas}{\"\\n\"}{end}"
     ]
     result = subprocess.run(command, capture_output=True, text=True)
-    return result.stdout.strip().split("\n")
+    details = result.stdout.strip().split("\n")
+    
+    resources = []
+    for i in range(0, len(details), 8):
+        resource = {
+            "name": details[i],
+            "namespace": details[i+1],
+            "type": details[i+2],
+            "limits": details[i+3],
+            "requests": details[i+3],
+            "readiness_probe_time": details[i+4] if details[i+4] else "NotSet",
+            "current_replicas": details[i+5],
+            "min_replicas": details[i+6] if details[i+6] else "NotSet",
+            "max_replicas": details[i+7] if details[i+7] else "NotSet"
+        }
+        resources.append(resource)
+    
+    return resources
 
 def main():
     if len(sys.argv) != 3:
