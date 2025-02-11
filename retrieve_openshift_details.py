@@ -4,11 +4,15 @@ import sys
 import csv
 
 def convert_cpu_to_millicores(cpu_value):
+    if cpu_value == "":
+        return "NotSet"
     if cpu_value.endswith("m"):
         return int(cpu_value[:-1])
     return int(float(cpu_value) * 1000)
 
 def convert_memory_to_mib(memory_value):
+    if memory_value == "":
+        return "NotSet"
     if memory_value.endswith("Mi"):
         return int(memory_value[:-2])
     elif memory_value.endswith("Gi"):
@@ -34,9 +38,9 @@ def get_resource_details(resource_type, namespace):
             "namespace": details[i+1] if i+1 < len(details) else "NotSet",
             "type": details[i+2] if i+2 < len(details) else "NotSet",
             "limits.cpu": convert_cpu_to_millicores(details[i+3]) if i+3 < len(details) else "NotSet",
-            "limits.memory": convert_memory_to_mib(details[i+4]) if i+4 < len(details) else "NotSet",
+            "limits.memory": convert_memory_to_mib(details[i+4]) if details[i+4] != "" else "NotSet",
             "requests.cpu": convert_cpu_to_millicores(details[i+5]) if i+5 < len(details) else "NotSet",
-            "requests.memory": convert_memory_to_mib(details[i+6]) if i+6 < len(details) else "NotSet",
+            "requests.memory": convert_memory_to_mib(details[i+6]) if details[i+6] != "" else "NotSet",
             "readiness_probe_time": details[i+7] if i+7 < len(details) else "NotSet",
             "current_replicas": details[i+8] if i+8 < len(details) else "NotSet",
             "min_replicas": details[i+9] if i+9 < len(details) else "NotSet",
