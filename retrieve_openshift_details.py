@@ -12,16 +12,18 @@ def get_resource_details(resource_type, namespace):
     
     resources = []
     for i in range(0, len(details), 8):
+        if len(details) - i < 8:
+            continue
         resource = {
-            "name": details[i],
-            "namespace": details[i+1],
-            "type": details[i+2],
-            "limits": details[i+3],
-            "requests": details[i+3],
-            "readiness_probe_time": details[i+4] if details[i+4] else "NotSet",
-            "current_replicas": details[i+5],
-            "min_replicas": details[i+6] if details[i+6] else "NotSet",
-            "max_replicas": details[i+7] if details[i+7] else "NotSet"
+            "name": details[i] if i < len(details) else "NotSet",
+            "namespace": details[i+1] if i+1 < len(details) else "NotSet",
+            "type": details[i+2] if i+2 < len(details) else "NotSet",
+            "limits": details[i+3] if i+3 < len(details) else "NotSet",
+            "requests": details[i+3] if i+3 < len(details) else "NotSet",
+            "readiness_probe_time": details[i+4] if i+4 < len(details) else "NotSet",
+            "current_replicas": details[i+5] if i+5 < len(details) else "NotSet",
+            "min_replicas": details[i+6] if i+6 < len(details) else "NotSet",
+            "max_replicas": details[i+7] if i+7 < len(details) else "NotSet"
         }
         resources.append(resource)
     
